@@ -251,7 +251,7 @@ class WP_Theme_JSON {
 	);
 
 	const ELEMENTS = array(
-		'link' => 'a',
+		'link' => 'a:not(.wp-block-button_link)',
 		'h1'   => 'h1',
 		'h2'   => 'h2',
 		'h3'   => 'h3',
@@ -566,12 +566,13 @@ class WP_Theme_JSON {
 	 * )
 	 * ```
 	 *
-	 * @param array $declarations Holds the existing declarations.
-	 * @param array $styles       Styles to process.
+	 * @param array   $declarations    Holds the existing declarations.
+	 * @param array   $styles          Styles to process.
+	 * @param boolean $is_link_element Whether we're processing a link node.
 	 *
 	 * @return array Returns the modified $declarations.
 	 */
-	private static function compute_style_properties( $declarations, $styles ) {
+	private static function compute_style_properties( $declarations, $styles, $is_link_element = false ) {
 		if ( empty( $styles ) ) {
 			return $declarations;
 		}
@@ -598,12 +599,22 @@ class WP_Theme_JSON {
 
 		foreach ( $properties as $prop ) {
 			$value = self::get_property_value( $styles, $prop['value'] );
-			if ( ! empty( $value ) ) {
-				$declarations[] = array(
-					'name'  => $prop['name'],
-					'value' => $value,
-				);
+			if ( empty( $value ) ) {
+				continue;
 			}
+
+			if ( $is_link_element && 'color' === $prop['name'] ) {
+				// User styles inline the --wp--style--color--link variable to the block wrapper,
+				// so it needs to be in scope.
+				//
+				// To be removed when user styles no longer use the variable.
+				$value = "var(--wp--style--color--link, $value)";
+			}
+
+			$declarations[] = array(
+				'name'  => $prop['name'],
+				'value' => $value,
+			);
 		}
 
 		return $declarations;
@@ -831,10 +842,13 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$selector     = $metadata['selector'];
-			$node         = _wp_array_get( $this->theme_json, $metadata['path'], array() );
-			$declarations = self::compute_style_properties( array(), $node );
-			$block_rules .= self::to_ruleset( $selector, $declarations );
+			$node     = _wp_array_get( $this->theme_json, $metadata['path'], array() );
+			$selector = $metadata['selector'];
+			// This will be removed when the user provided styles
+			// for link color no longer use the --wp--style--link-color variable.
+			$is_link_element = self::is_link_element( $metadata['selector'] );
+			$declarations    = self::compute_style_properties( array(), $node, $is_link_element );
+			$block_rules    .= self::to_ruleset( $selector, $declarations );
 		}
 
 		$preset_rules = '';
@@ -1165,13 +1179,13 @@ class WP_Theme_JSON {
 	 * Processes a style node and returns the same node
 	 * without the insecure styles.
 	 *
-	 * @param array $input Node to process.
-	 *
+	 * @param array   $input Node to process.
+	 * @param boolean $is_link_element Whether the node is a link element.
 	 * @return array
 	 */
-	private static function remove_insecure_styles( $input ) {
+	private static function remove_insecure_styles( $input, $is_link_element ) {
 		$output       = array();
-		$declarations = self::compute_style_properties( array(), $input );
+		$declarations = self::compute_style_properties( array(), $input, $is_link_element );
 		foreach ( $declarations as $declaration ) {
 			if ( self::is_safe_css_declaration( $declaration['name'], $declaration['value'] ) ) {
 				$property = self::to_property( $declaration['name'] );
@@ -1200,6 +1214,22 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Whether the selector contains a link element.
+	 *
+	 * @param string $selector The selector to check
+	 *
+	 * @return boolean
+	 */
+	private static function is_link_element( $selector ) {
+		$result = true;
+		if ( false === strpos( $selector, self::ELEMENTS['link'] ) ) {
+			$result = false;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Removes insecure data from theme.json.
 	 */
 	public function remove_insecure_properties() {
@@ -1212,7 +1242,8 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$output = self::remove_insecure_styles( $input );
+			$is_link_element = self::is_link_element( $metadata['selector'] );
+			$output          = self::remove_insecure_styles( $input, $is_link_element );
 			if ( ! empty( $output ) ) {
 				gutenberg_experimental_set( $sanitized, $metadata['path'], $output );
 			}
@@ -1265,8 +1296,8 @@ class WP_Theme_JSON {
 	 */
 	public static function get_from_editor_settings( $settings ) {
 		$theme_settings = array(
-			'version' => self::LATEST_SCHEMA,
-			'settings' => array()
+			'version'  => self::LATEST_SCHEMA,
+			'settings' => array(),
 		);
 
 		// Deprecated theme supports.

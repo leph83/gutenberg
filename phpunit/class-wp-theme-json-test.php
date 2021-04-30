@@ -144,11 +144,11 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			'body{--wp--preset--color--grey: grey;--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a{color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #333;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{font-size: 60px;}.wp-block-post-title{color: #123456;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}.has-grey-border-color{border-color: grey !important;}',
+			'body{--wp--preset--color--grey: grey;--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a:not(.wp-block-button_link){color: var(--wp--style--color--link, #111);}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a:not(.wp-block-button_link){color: var(--wp--style--color--link, #333);}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:not(.wp-block-button_link),h2 a:not(.wp-block-button_link),h3 a:not(.wp-block-button_link),h4 a:not(.wp-block-button_link),h5 a:not(.wp-block-button_link),h6 a:not(.wp-block-button_link){font-size: 60px;}.wp-block-post-title{color: #123456;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}.has-grey-border-color{border-color: grey !important;}',
 			$theme_json->get_stylesheet()
 		);
 		$this->assertEquals(
-			'body{color: var(--wp--preset--color--grey);}a{color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #333;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{font-size: 60px;}.wp-block-post-title{color: #123456;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}.has-grey-border-color{border-color: grey !important;}',
+			'body{color: var(--wp--preset--color--grey);}a:not(.wp-block-button_link){color: var(--wp--style--color--link, #111);}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a:not(.wp-block-button_link){color: var(--wp--style--color--link, #333);}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:not(.wp-block-button_link),h2 a:not(.wp-block-button_link),h3 a:not(.wp-block-button_link),h4 a:not(.wp-block-button_link),h5 a:not(.wp-block-button_link),h6 a:not(.wp-block-button_link){font-size: 60px;}.wp-block-post-title{color: #123456;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}.has-grey-border-color{border-color: grey !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
 		$this->assertEquals(
@@ -229,7 +229,7 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			'bod{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}.has-grey-border-color{border-color: grey !important;}',
+			'body{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}.has-grey-border-color{border-color: grey !important;}',
 			$theme_json->get_stylesheet()
 		);
 	}

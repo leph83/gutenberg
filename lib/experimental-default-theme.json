@@ -230,7 +230,7 @@
 		"elements": {
 			"link": {
 				"color": {
-					"text": "var(--wp--style--color--link, #00e)"
+					"text": "#00E"
 				}
 			}
 		}
